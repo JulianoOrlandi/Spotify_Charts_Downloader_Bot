@@ -69,7 +69,7 @@ This function takes the `driver` variable as an argument and goes to the log in 
 
 ##### **download_missing_charts(driver_logged, missing_charts_dates):**
 
-This function takes the `driver_logged` variable and the `missing_charts_dates` as arguments. Firstly, it gets to the weekly top songs global page, opens the calendar and finds the last date available. Then it checks if this date is equal to the first date in the `missing_charts_dates` list. If they are equal, it calls the function `download_chart()`. If the last date available is previous to the first date in the list, the program simply delete the date from the list.  This last possibility may occur on Fridays, depending in which moment of the day the program is running. The `get_missing_charts_dates()` will return a list with the date of the previous Thursday, but sometimes the web site didn't publish the chart from that week yet. The `elif` statement handles this special possibility. After that, the function starts a loop while the length of `missing_charts_dates` is great than 0. It creates an URL with the first date of the list, passes to the `get` method of the `driver_logged` and calls the function `download_chart()`.
+This function takes the `driver_logged` variable and the `missing_charts_dates` as arguments. It starts a loop while the length of `missing_charts_dates` is great than 0. It creates an URL with the first date of the list, passes to the `get` method of the `driver_logged` and calls the function `download_chart()`.
 
 ##### **download_chart(driver_logged, missing_charts_dates):**
 

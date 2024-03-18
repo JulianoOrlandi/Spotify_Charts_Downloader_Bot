@@ -72,7 +72,7 @@ def create_webdriver():
     options.add_experimental_option("prefs",prefs)
 
     # Create webdriver.Chrome:
-    driver = webdriver.Chrome(executable_path="./drivers/chromedriver.exe", options=options)
+    driver = webdriver.Chrome(options=options)
     driver.maximize_window()
     
     return driver
@@ -102,24 +102,12 @@ def login(driver):
 def download_missing_charts(driver_logged, missing_charts_dates):
 
     # Get to the weekly top songs webpage:
-    WebDriverWait(driver_logged, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="__next"]/div/div/main/div[2]/div[3]/div/div[1]'))).click()
+    WebDriverWait(driver_logged, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div/div/main/div[2]/div[3]/div/div[1]/div[1]'))).click()
     
-    # Open the calendar:
-    WebDriverWait(driver_logged, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="__next"]/div/div/main/div[2]/div[3]/div/div/div[2]/div/div[2]/div[1]'))).click()
-
-    # Get the current date:
-    current_date = WebDriverWait(driver_logged, 10).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="weekly_end_date"]')))
-
-    # Compare if the current date is equal the first date of the charts_dates:
-    if current_date.get_attribute("value") == missing_charts_dates[0].strftime("%m/%d/%Y"):
-        
-        download_chart(driver_logged, missing_charts_dates)
+    # Handle Cookie Dialog:
+    WebDriverWait(driver_logged, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div[2]/div/div[2]/button'))).click() 
     
-    elif current_date.get_attribute("value") < missing_charts_dates[0].strftime("%m/%d/%Y"):
-        
-        missing_charts_dates.remove(missing_charts_dates[0])
-
-    # Loop through the remaining dates in missing_charts_dates:
+    # Loop through the dates in missing_charts_dates:
     while len(missing_charts_dates) > 0:
         
         # Getting to the URL of the current chart:
