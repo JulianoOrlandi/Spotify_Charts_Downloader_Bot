@@ -41,7 +41,7 @@ This program is very simple. It only downloads the charts from [Spotify Charts w
 
 
 #### **Documentation:**
-The program is in the file [spotify_downloader_bot.py](./spotify_downloader_bot.py). Besides `main()`, it has five more functions.
+The program is in the file [spotify_downloader_bot.py](./spotify_downloader_bot.py). Besides `main()`, it has six more functions.
 
 ##### **main():**
 
@@ -62,6 +62,9 @@ Finally, this function compares `files_dates` list  with `all_dates` list. It re
 ##### **create_webdriver():**
 
 This function creates the webdriver to access [Spotify Charts webpage](https://charts.spotify.com/home). Firstly, it sets the `/charts` folder as the download default directory for the webdriver. Secondly, it creates the webdriver by passing the path to the *chromedriver.exe* file (`./drivers/chromedriver.exe`). Finally, the function returns the webdriver as a variable called `driver`.
+
+##### **checking_cookie_dialog(driver):**
+The first version of this script did not have this function. There was no cookies dialog box in Spotify Charts' Webpage. It is used inside other functions to check if the dialog box appears and to click on its close button. Unfortunately it is not working very well and sometimes it raises an error. I will address ths issue in the next update.
 
 ##### **login(driver):**
 

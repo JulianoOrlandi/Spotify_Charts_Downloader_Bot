@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 import creds
 
 
@@ -43,7 +44,7 @@ def get_missing_charts_dates():
         final_date = final_date - timedelta(weeks=1)
     
     all_dates.append(first_date)
-
+    
     # Check which charts have been already downloaded:
     files_names = os.listdir('charts/')
     files_dates = []
@@ -77,14 +78,29 @@ def create_webdriver():
     
     return driver
 
-
+def checking_cookie_dialog(driver):
+    try:
+        WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.ID, 'onetrust-close-btn-container')))
+        close_button = WebDriverWait(driver, 15).until(EC.element_to_be_clickable(
+            (By.CSS_SELECTOR,'#onetrust-close-btn-container > button')))
+        close_button.click()
+    except TimeoutException:
+        WebDriverWait(driver, 2)
+        
 def login(driver):
 
     # Get to Spotify Charts webpage:
     driver.get("https://charts.spotify.com/home")
 
+    # Checking for a cookie dialog box:
+    checking_cookie_dialog(driver)
+    
     # Get to the login webpage and wait for rendering the login button:
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, 'Log in'))).click()
+    
+    # Checking for a cookie dialog box:
+    checking_cookie_dialog(driver)
+    
     login_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'login-button')))
     
     # Filling the form to log in and clicking the button:
@@ -101,11 +117,26 @@ def login(driver):
 
 def download_missing_charts(driver_logged, missing_charts_dates):
 
+    # Checking for a cookie dialog box:
+    checking_cookie_dialog(driver_logged)
+    
     # Get to the weekly top songs webpage:
     WebDriverWait(driver_logged, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/div/div/main/div[2]/div[3]/div/div[1]/div[1]'))).click()
     
-    # Handle Cookie Dialog:
-    WebDriverWait(driver_logged, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div[2]/div/div[2]/button'))).click() 
+    
+    # Addressing the chart's date and the publishing date issue:
+    
+    # Getting to the URL of the current chart:
+    URL = "https://charts.spotify.com/charts/view/regional-global-weekly/" + missing_charts_dates[0].strftime("%Y-%m-%d")
+    driver_logged.get(URL)
+    
+    # Checking if the chart wiht the first date is already available: 
+    try:
+        WebDriverWait(driver_logged, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/div/main/div[2]/div[2]/div/h3")))
+        print("The chart for the " + str(missing_charts_dates[0].date()) + " is not yet available. Try again in the next day.")
+        missing_charts_dates.remove(missing_charts_dates[0])
+    except TimeoutException:
+        download_chart(driver_logged, missing_charts_dates)
     
     # Loop through the dates in missing_charts_dates:
     while len(missing_charts_dates) > 0:
@@ -114,8 +145,15 @@ def download_missing_charts(driver_logged, missing_charts_dates):
         URL = "https://charts.spotify.com/charts/view/regional-global-weekly/" + missing_charts_dates[0].strftime("%Y-%m-%d")
         driver_logged.get(URL)
         
-        download_chart(driver_logged, missing_charts_dates)
         
+        # Addressing the chart's date and the publishing date issue:
+        try:
+            WebDriverWait(driver_logged, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/div/main/div[2]/div[2]/div/h3")))
+            print("The chart for the " + str(missing_charts_dates[0].date()) + " is not yet available. Try again in the next day.")
+            missing_charts_dates.remove(missing_charts_dates[0])
+        except TimeoutException:
+            download_chart(driver_logged, missing_charts_dates)
+
 
 def download_chart(driver_logged, missing_charts_dates):
     
